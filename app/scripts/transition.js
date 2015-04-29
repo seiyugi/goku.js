@@ -27,6 +27,7 @@
     this.isPaused = false;
     this.requestId = null;
     this.promise = null;
+    this.promiseQueue = [];
   }
 
   Transition.prototype = {
@@ -123,7 +124,18 @@
           that.onstart();
         }
 
-        return this;
+        var promiseTask = {};
+        var promise = new Promise(function (resolve, reject) {
+          promiseTask.resolve = resolve;
+          promiseTask.reject = reject;
+        });
+        promise.animate = this.animate.bind(this);
+        promise.delay = this.delay.bind(this);
+        promise.pause = this.pause.bind(this);
+        promiseTask.promise = promise;
+        this.promiseQueue.push(promiseTask);
+
+        return promise;
       }
     },
 
@@ -158,15 +170,6 @@
       return this;
     },
 
-    then: function (callback) {
-      console.log('then');
-
-      if (callback) {
-        this.queue.push(callback);
-        this.timings.push(0);
-      }
-    },
-
     step: function (timestamp) {
       // timestamp is started when page loaded, reset the elapsed time first
       if (!this.isPaused && this.lastTimestamp) {
@@ -188,6 +191,8 @@
         if (task.options.complete) {
           task.options.complete();
         }
+        var promiseTask = this.promiseQueue[this.playingIndex];
+        promiseTask.resolve();
         this._next();
       }
     },
@@ -199,19 +204,7 @@
         console.log('next');
 
         var task = this.queue[this.playingIndex];
-        var promise = task.start();
-
-        if (promise instanceof Promise) {
-          console.log('promise');
-          var that = this;
-          this.isPaused = true;
-          this.promise = promise;
-          promise.then(function () {
-            that.isPaused = false;
-            that.promise = null;
-            that._next();
-          });
-        }
+        task.start();
 
         this.elapsedTime = 0;
         this.lastTimestamp = 0;
@@ -230,7 +223,6 @@
       this.timings.length = 0;
       this.elapsedTime = 0;
       this.lastTimestamp = 0;
-      cancelAnimationFrame(this.requestId);
       this.requestId = null;
     }
   };

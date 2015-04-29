@@ -10,6 +10,7 @@
   background: red;
   width: 10rem;
   height: 10rem;
-  transform: scale(2) rotate(45deg);
+  /*transform: scale(2) rotate(45deg);*/
+  border-bottom: black 5px solid;
 }
 

@@ -32,6 +32,21 @@
       start: function () { console.log('start the 4th animation'); },
       complete: function () { console.log('complete the 4th animation'); }
     });
+
+    goku('#elem-b')
+    .animate({
+      transform: 'translate(5rem, 10rem)'
+    }, {
+      duration: 2000
+    })
+    .then(function() {
+      console.log('promise resolved!');
+    });
+
+    goku('#elem-b')
+    .animate({
+      transform: 'none'
+    });
   });
 
   // document.getElementById('pause').addEventListener('click', function () {

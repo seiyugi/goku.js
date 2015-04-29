@@ -20,8 +20,10 @@ function isObjectEmpty(obj) {
 
   var elements = {};
 
+  var gokuIndex = 0;
+
   function newId () {
-    return 'goku-' + Date.now();
+    return 'goku-' + gokuIndex++;
   }
 
   function goku (element) {
@@ -75,7 +77,7 @@ function isObjectEmpty(obj) {
    */
   function step (timestamp) {
     for (var key in elements) {
-      if (elements[key] instanceof Transition) {
+      if (elements[key].step) {
         elements[key].step(timestamp);
       }
     }
