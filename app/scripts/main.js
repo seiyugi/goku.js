@@ -4,51 +4,42 @@
 
   'use strict';
 
-  var transition = new Transition();
-
-  function startTransition() {
-    transition.play('#elem-a', {
-      property: 'transform',
-      value: 'scale(1.5)',
-      duration: 1000});
-
-    transition.then(function() {
-      console.log('oh');
-      // transition.clear();
-      return new Promise(function(resolve, reject) {
-        setTimeout(function() {
-          console.log('yeah');
-          resolve();
-        }, 5000);
-      });
-    });
-
-    transition.play('#elem-a', {
-      property: 'transform',
-      value: 'translate(10rem, 0)',
-      duration: 1000});
-
-    transition.play('#elem-a', {
-      property: 'transform',
-      value: 'translate(5rem, 0)',
-      duration: 1000});
-
-    transition.play('#elem-a', {
-      property: 'transform',
-      value: 'translate(0, 5rem)',
-      duration: 1000});
-  }
-
   document.getElementById('play').addEventListener('click', function () {
-    startTransition();
+    goku('#elem-a')
+    .animate({
+      transform: 'translate(10rem, 0)'
+    }, {
+      start: function () { console.log('start the 1st animation'); },
+      complete: function () { console.log('complete the 1st animation'); }
+    })
+    .animate({
+      transform: 'translate(10rem, 0) scale(2)'
+    }, {
+      start: function () { console.log('start the 2nd animation'); },
+      complete: function () { console.log('complete the 2nd animation'); }
+    })
+    .animate({
+      transform: 'rotate(270deg)'
+    }, {
+      duration: 1000,
+      start: function () { console.log('start the 3rd animation'); },
+      complete: function () { console.log('complete the 3rd animation'); }
+    })
+    .animate({
+      transform: 'none'
+    }, {
+      duration: 600,
+      start: function () { console.log('start the 4th animation'); },
+      complete: function () { console.log('complete the 4th animation'); }
+    });
   });
 
   // document.getElementById('pause').addEventListener('click', function () {
-  //   transition.pause();
+  //   goku('#elem-a').pause();
   // });
 
   // document.getElementById('end').addEventListener('click', function () {
-  //   transition.end();
+  //   goku('#elem-a').end();
   // });
 
 })(window);
