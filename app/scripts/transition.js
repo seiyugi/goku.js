@@ -53,7 +53,7 @@
      * @param  {[type]} value   [description]
      * @return {[type]}         [description]
      */
-    _generateTransformByMatrix: function (element, value) {
+    _generateTransformByMatrix: function (/*element, value*/) {
       // If transform was applied on the element
         // Get orinial transform matrix
         // Get new transform matrix
@@ -62,7 +62,7 @@
 
     },
 
-    addClass: function (className) {},
+    addClass: function (/*className*/) {},
 
     /**
      * By default the animate calls are queued.
@@ -102,6 +102,7 @@
             that.element.style.transitionTimingFunction = options.easing || DEFAULT_EASING;
             // Workaround for triggering a transition.
             // http://stackoverflow.com/questions/24148403/trigger-css-transition-on-appended-element
+            /* jshint -W030 */
             that.element.offsetWidth;
             for (var key in properties) {
               if (key === 'transform') {
