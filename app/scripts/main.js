@@ -1,6 +1,7 @@
 /* jshint devel:true */
+/* global goku */
 
-(function (window) {
+(function () {
 
   'use strict';
 

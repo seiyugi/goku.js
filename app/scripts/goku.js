@@ -1,19 +1,5 @@
-function isObjectEmpty(obj) {
-  if (!obj) {
-    return true;
-  }
-
-  for (var key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
+/* global Transition */
 (function (exports) {
-
   'use strict';
 
   var requestId;
@@ -21,6 +7,33 @@ function isObjectEmpty(obj) {
   var elements = {};
 
   var gokuIndex = 0;
+  var requestAnimationFrame = window.requestAnimationFrame ||
+                              window.webkitRequestAnimationFrame ||
+                              window.mozRequestAnimationFrame ||
+                              function fakeAnimationFrame(callback) {
+                                window.setTimeout(callback, 1000 / 60);
+                              };
+  var cancelAnimationFrame = window.cancelAnimationFrame ||
+                             window.webkitCancelAnimationFrame ||
+                             window.mozCancelAnimationFrame ||
+                             function fakeAnimationFrame(id) {
+                               window.clearTimeout(id);
+                             };
+
+
+  function isObjectEmpty(obj) {
+    if (!obj) {
+      return true;
+    }
+
+    for (var key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 
   function newId () {
     return 'goku-' + gokuIndex++;
