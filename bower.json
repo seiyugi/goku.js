@@ -1,7 +1,13 @@
 {
-  "name": "transitionjs",
+  "name": "goku.js",
   "private": true,
-  "dependencies": {
-    "jquery": "~2.1.1"
-  }
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "example",
+    "test",
+    "gulpfile.js",
+    "package.json"
+  ]
 }
