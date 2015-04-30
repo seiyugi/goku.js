@@ -70,6 +70,7 @@ gulp.task('serve', ['styles', 'build'], function () {
   ]).on('change', reload);
 
   gulp.watch('example/styles/**/*.css', ['styles']);
+  gulp.watch('src/*.js', ['build']);
   gulp.watch('bower.json', ['wiredep', 'fonts']);
 });
 
