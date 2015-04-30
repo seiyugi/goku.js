@@ -17,7 +17,7 @@ gulp.task('styles', function () {
     .pipe(reload({stream: true}));
 });
 
-gulp.task('example-jshint', function () {
+gulp.task('example-js', function () {
   return gulp.src('example/scripts/**/*.js')
     .pipe(reload({stream: true, once: true}))
     .pipe($.jshint())
@@ -31,7 +31,6 @@ gulp.task('html', ['styles'], function () {
 
   return gulp.src('example/*.html')
     .pipe(assets)
-    .pipe($.if('*.js', $.uglify()))
     .pipe($.if('*.css', $.csso()))
     .pipe(assets.restore())
     .pipe($.useref())
@@ -67,10 +66,11 @@ gulp.task('serve', ['styles', 'build'], function () {
     'example/*.html',
     'example/scripts/**/*.js',
     'example/images/**/*',
+    'src/**/*.js'
   ]).on('change', reload);
 
-  gulp.watch('example/styles/**/*.css', ['styles']);
-  gulp.watch('src/*.js', ['build']);
+  gulp.watch('example/**/*', ['html', 'example-js'])
+  gulp.watch('src/**/*.js', ['core']);
   gulp.watch('bower.json', ['wiredep', 'fonts']);
 });
 
@@ -87,15 +87,17 @@ gulp.task('wiredep', function () {
 
 gulp.task('core', function() {
   return gulp.src('src/**/*.js')
+    .pipe($.sourcemaps.init())
     .pipe($.jshint())
     .pipe($.jshint.reporter('jshint-stylish'))
     .pipe($.uglify())
     .pipe($.concat('goku.min.js'))
+    .pipe($.sourcemaps.write())
     .pipe(gulp.dest('.tmp/scripts'))
     .pipe(gulp.dest('dist'));
 });
 
-gulp.task('build', ['core', 'example-jshint', 'html', 'extras'], function () {
+gulp.task('build', ['core', 'example-js', 'html', 'extras'], function () {
   return gulp.src('dist/**/*').pipe($.size({title: 'build', gzip: true}));
 });
 
