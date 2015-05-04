@@ -47,7 +47,8 @@ gulp.task('extras', function () {
   }).pipe(gulp.dest('.tmp'));
 });
 
-gulp.task('clean', require('del').bind(null, ['.tmp', 'dist']));
+gulp.task('clean', require('del').bind(null,
+  ['.tmp', 'dist', 'maps', 'goku.js', 'goku.min.js']));
 
 gulp.task('serve', ['styles', 'build'], function () {
   browserSync({
@@ -90,11 +91,15 @@ gulp.task('core', function() {
     .pipe($.sourcemaps.init())
     .pipe($.jshint())
     .pipe($.jshint.reporter('jshint-stylish'))
+    .pipe($.concat('goku.js'))
+    .pipe(gulp.dest('dist'))
+    .pipe(gulp.dest('./'))
     .pipe($.uglify())
     .pipe($.concat('goku.min.js'))
-    .pipe($.sourcemaps.write())
+    .pipe($.sourcemaps.write('maps'))
     .pipe(gulp.dest('.tmp/scripts'))
-    .pipe(gulp.dest('dist'));
+    .pipe(gulp.dest('dist'))
+    .pipe(gulp.dest('./'));
 });
 
 gulp.task('build', ['core', 'example-js', 'html', 'extras'], function () {
