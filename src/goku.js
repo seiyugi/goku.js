@@ -14,13 +14,13 @@
                               function fakeAnimationFrame(callback) {
                                 return window.setTimeout(callback, 1000 / 60);
                               };
+
   var cancelAnimationFrame = window.cancelAnimationFrame ||
                              window.webkitCancelAnimationFrame ||
                              window.mozCancelAnimationFrame ||
                              function fakeAnimationFrame(id) {
                                window.clearTimeout(id);
                              };
-
 
   function isObjectEmpty(obj) {
     if (!obj) {
@@ -71,6 +71,7 @@
       id: id,
       onstart: function () {
         if (!requestId) {
+          console.log('goku.js: start animation loop');
           requestId = requestAnimationFrame(step);
         }
       },
@@ -79,6 +80,7 @@
         delete element.dataset.gokuId;
         delete elements[id];
         if (isObjectEmpty(elements)) {
+          console.log('goku.js: complete animation loop');
           cancelAnimationFrame(requestId);
           requestId = null;
         }
@@ -94,13 +96,13 @@
    * @return {[type]}           [description]
    */
   function step (timestamp) {
+    requestId = requestAnimationFrame(step);
+    // console.log(timestamp);
     for (var key in elements) {
       if (elements[key].step) {
         elements[key].step(timestamp);
       }
     }
-
-    requestId = requestAnimationFrame(step);
   }
 
   exports.goku = goku;
