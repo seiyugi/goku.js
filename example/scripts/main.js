@@ -10,6 +10,7 @@
     .animate({
       transform: 'translate(10rem, 0)'
     }, {
+      before: function () { console.log('before the 1st animation'); },
       start: function () { console.log('start the 1st animation'); },
       complete: function () { console.log('complete the 1st animation'); }
     })

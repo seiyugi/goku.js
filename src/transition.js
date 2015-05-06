@@ -26,8 +26,11 @@
     this.lastTimestamp = 0;
     this.isPaused = false;
     this.requestId = null;
-    this.promise = null;
     this.promiseQueue = [];
+
+    this.animate = this.animate.bind(this);
+    this.delay = this.animate.bind(this);
+    this.pause = this.pause.bind(this);
   }
 
   Transition.prototype = {
@@ -130,9 +133,9 @@
           promiseTask.resolve = resolve;
           promiseTask.reject = reject;
         });
-        promise.animate = this.animate.bind(this);
-        promise.delay = this.delay.bind(this);
-        promise.pause = this.pause.bind(this);
+        promise.animate = this.animate;
+        promise.delay = this.delay;
+        promise.pause = this.pause;
         promiseTask.promise = promise;
         this.promiseQueue.push(promiseTask);
 
@@ -184,12 +187,12 @@
       }
 
       if (!this.isPaused) {
-        console.log('step', this.id, this.elapsedTime);
+        // console.log('step', this.id, this.elapsedTime);
       }
 
       if (this.elapsedTime > this.timings[this.playingIndex]) {
         var task = this.queue[this.playingIndex];
-        if (task.options.complete) {
+        if (typeof task.options.complete === 'function') {
           task.options.complete();
         }
         var promiseTask = this.promiseQueue[this.playingIndex];
@@ -202,23 +205,26 @@
       this.playingIndex += 1;
 
       if (this.queue[this.playingIndex]) {
-        console.log('next');
+        console.log(this.id, 'next');
 
         var task = this.queue[this.playingIndex];
+        if (typeof task.options.before === 'function') {
+          task.options.before();
+        }
         task.start();
 
         this.elapsedTime = 0;
         this.lastTimestamp = 0;
 
       } else {
-        console.log('end');
+        console.log(this.id, 'end');
         this._clear();
         this.oncomplete(this.element);
       }
     },
 
     _clear: function () {
-      console.log('clear');
+      console.log(this.id, 'clear');
       this.playingIndex = -1;
       this.queue.length = 0;
       this.timings.length = 0;
