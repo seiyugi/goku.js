@@ -112,5 +112,5 @@ gulp.task('default', ['clean'], function () {
 
 gulp.task('hook', function() {
   return gulp.src('.post-merge')
-    .pipe($.symlink('.git/hooks/post-merge', 'post-merge'));
+    .pipe($.symlink('.git/hooks/post-merge', {force: true}));
 });
