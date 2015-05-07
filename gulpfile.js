@@ -109,3 +109,8 @@ gulp.task('build', ['core', 'example-js', 'html', 'extras'], function () {
 gulp.task('default', ['clean'], function () {
   gulp.start('build');
 });
+
+gulp.task('hook', function() {
+  return gulp.src('.post-merge')
+    .pipe($.symlink('.git/hooks/post-merge', 'post-merge'));
+});
