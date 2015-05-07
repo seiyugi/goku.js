@@ -14,13 +14,13 @@
                               function fakeAnimationFrame(callback) {
                                 return window.setTimeout(callback, 1000 / 60);
                               };
+
   var cancelAnimationFrame = window.cancelAnimationFrame ||
                              window.webkitCancelAnimationFrame ||
                              window.mozCancelAnimationFrame ||
                              function fakeAnimationFrame(id) {
                                window.clearTimeout(id);
                              };
-
 
   function isObjectEmpty(obj) {
     if (!obj) {
@@ -71,6 +71,7 @@
       id: id,
       onstart: function () {
         if (!requestId) {
+          console.log('goku.js: start animation loop');
           requestId = requestAnimationFrame(step);
         }
       },
@@ -79,6 +80,7 @@
         delete element.dataset.gokuId;
         delete elements[id];
         if (isObjectEmpty(elements)) {
+          console.log('goku.js: complete animation loop');
           cancelAnimationFrame(requestId);
           requestId = null;
         }
@@ -94,13 +96,13 @@
    * @return {[type]}           [description]
    */
   function step (timestamp) {
+    requestId = requestAnimationFrame(step);
+    // console.log(timestamp);
     for (var key in elements) {
       if (elements[key].step) {
         elements[key].step(timestamp);
       }
     }
-
-    requestId = requestAnimationFrame(step);
   }
 
   exports.goku = goku;
@@ -134,7 +136,7 @@
     this.elapsedTime = 0;
     this.lastTimestamp = 0;
     this.isPaused = false;
-    this.requestId = null;
+    this.pausingIndex = -1;
     this.promiseQueue = [];
 
     this.animate = this.animate.bind(this);
@@ -181,7 +183,7 @@
      */
     _generateTransformByMatrix: function (/*element, value*/) {
       // If transform was applied on the element
-        // Get orinial transform matrix
+        // Get originial transform matrix
         // Get new transform matrix
         // Compute the result transform matrix
       // Else, set the value directly
@@ -198,6 +200,7 @@
       // Optimize this later
       // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/arguments
       var args = Array.prototype.slice.call(arguments);
+
       if (!args[0]) {
         throw new Error('Goku: missing arguments!');
       }
@@ -221,6 +224,7 @@
 
         var that = this;
         var task = {
+          properties: properties,
           options: options,
           start: function () {
             that.element.style.transitionProperty = transitionProperty;
@@ -282,6 +286,13 @@
       return this;
     },
 
+    play: function () {
+      console.log(this.id, 'play');
+      this.isPaused = false;
+
+      return this.promiseQueue[this.playingIndex].promise;
+    },
+
     reset: function () {},
 
     next: function () {},
@@ -307,12 +318,46 @@
         return;
       }
 
-      if (!this.isPaused) {
-        // console.log('step', this.id, this.elapsedTime);
+      if (this.isPaused && this.pausingIndex > -1) {
+        return;
       }
 
+      var task;
+      var properties;
+      var key;
+
+      if (this.isPaused && this.pausingIndex < 0) {
+        // Set the current style to element.style
+        this.pausingIndex = this.playingIndex;
+        var styles = getComputedStyle(this.element);
+        task = this.queue[this.playingIndex];
+        properties = task.properties;
+
+        for (key in properties) {
+          this.element.style[key] = styles[key];
+        }
+
+        return;
+      }
+
+      if (!this.isPaused && this.pausingIndex > -1) {
+        this.pausingIndex = -1;
+        task = this.queue[this.playingIndex];
+        properties = task.properties;
+
+        for (key in properties) {
+          this.element.style[key] = properties[key];
+        }
+
+        return;
+      }
+
+      // if (!this.isPaused) {
+      //   console.log('step', this.id, this.elapsedTime);
+      // }
+
       if (this.elapsedTime > this.timings[this.playingIndex]) {
-        var task = this.queue[this.playingIndex];
+        task = this.queue[this.playingIndex];
         if (task.options && typeof task.options.complete === 'function') {
           task.options.complete();
         }
@@ -354,7 +399,6 @@
       this.timings.length = 0;
       this.elapsedTime = 0;
       this.lastTimestamp = 0;
-      this.requestId = null;
     }
   };
 

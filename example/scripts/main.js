@@ -5,14 +5,20 @@
 
   'use strict';
 
-  document.getElementById('play').addEventListener('click', function () {
+  var playButton = document.getElementById('play');
+  var pauseAButton = document.getElementById('pause-a');
+  var pauseBButton = document.getElementById('pause-b');
+
+  playButton.addEventListener('click', function () {
+
+    playButton.setAttribute('disabled', true);
 
     // #elem-a animations
 
     goku('#elem-a')
 
     .animate({
-      transform: 'translate(10rem, 0)'
+      transform: 'translate(50rem, 0)'
     }, {
       before: function () { console.log('before the 1st #elem-a animation'); },
       start: function () { console.log('start the 1st #elem-a animation'); },
@@ -20,7 +26,7 @@
     })
 
     .animate({
-      transform: 'translate(10rem, 0) scale(2)'
+      transform: 'translate(50rem, 0) scale(2)'
     }, {
       start: function () { console.log('start the 2nd #elem-a animation'); },
       complete: function () { console.log('complete the 2nd #elem-a animation'); }
@@ -51,30 +57,47 @@
     .delay(500)
 
     .animate({
-      transform: 'translate(5rem, 10rem)'
+      transform: 'translate(70rem, 10rem)'
     }, {
-      duration: 2000,
-      start: function () { console.log('start the 1st animation'); },
-      complete: function () { console.log('complete the 1st animation'); }
+      duration: 5000,
+      start: function () { console.log('start the 1st #elem-b animation'); },
+      complete: function () { console.log('complete the 1st #elem-b animation'); }
     })
 
     .then(function() {
       console.log('promise resolved!');
-    });
 
-    goku('#elem-b')
+      goku('#elem-b')
 
-    .animate({
-      transform: 'none'
-    }, {
-      start: function () { console.log('start the 2nd #elem-b animation'); },
-      complete: function () { console.log('complete the 2nd #elem-b animation'); }
+      .animate({
+        transform: 'none'
+      }, {
+        duration: 2500,
+        start: function () { console.log('start the 2nd #elem-b animation'); },
+        complete: function () { console.log('complete the 2nd #elem-b animation'); }
+      });
     });
   });
 
-  // document.getElementById('pause').addEventListener('click', function () {
-  //   goku('#elem-a').pause();
-  // });
+  pauseAButton.addEventListener('click', function () {
+    if (pauseAButton.textContent === 'pause blue') {
+      goku('#elem-a').pause();
+      pauseAButton.textContent = 'play blue';
+    } else {
+      goku('#elem-a').play();
+      pauseAButton.textContent = 'pause blue';
+    }
+  });
+
+  pauseBButton.addEventListener('click', function () {
+    if (pauseBButton.textContent === 'pause red') {
+      goku('#elem-b').pause();
+      pauseBButton.textContent = 'play red';
+    } else {
+      goku('#elem-b').play();
+      pauseBButton.textContent = 'pause red';
+    }
+  });
 
   // document.getElementById('end').addEventListener('click', function () {
   //   goku('#elem-a').end();
