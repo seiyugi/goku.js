@@ -13,6 +13,7 @@
     "gulp-csso": "^0.2.6",
     "gulp-if": "^1.2.1",
     "gulp-imagemin": "^2.0.0",
+    "gulp-install": "^0.4.0",
     "gulp-jshint": "^1.5.3",
     "gulp-load-plugins": "^0.8.0",
     "gulp-minify-html": "^0.1.6",

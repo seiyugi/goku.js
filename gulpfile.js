@@ -50,6 +50,13 @@ gulp.task('extras', function () {
 gulp.task('clean', require('del').bind(null,
   ['.tmp', 'dist', 'maps', 'goku.js', 'goku.min.js']));
 
+gulp.task('install', function() {
+  return gulp.src([
+    './bower.json',
+    './package.json']
+  ).pipe($.install());
+});
+
 gulp.task('serve', ['styles', 'build'], function () {
   browserSync({
     notify: false,
@@ -106,6 +113,6 @@ gulp.task('build', ['core', 'example-js', 'html', 'extras'], function () {
   return gulp.src('dist/**/*').pipe($.size({title: 'build', gzip: true}));
 });
 
-gulp.task('default', ['clean'], function () {
+gulp.task('default', ['clean', 'install'], function () {
   gulp.start('build');
 });
