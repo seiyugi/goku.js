@@ -20,7 +20,7 @@
     .animate({
       transform: 'translate(50rem, 0)'
     }, {
-      duration: 2000,
+      duration: 5000,
       before: function () { console.log('before the 1st #elem-a animation'); },
       start: function () { console.log('start the 1st #elem-a animation'); },
       complete: function () { console.log('complete the 1st #elem-a animation'); }
@@ -91,6 +91,16 @@
       goku('#elem-b').play();
       pauseBButton.textContent = 'pause red';
     }
+  });
+
+  document.getElementById('fast-forward').addEventListener('click', function () {
+    goku('#elem-a').speed(7, true);
+    goku('#elem-b').speed();
+  });
+
+  document.getElementById('slow-motion').addEventListener('click', function () {
+    goku('#elem-a').speed(0.25, true);
+    goku('#elem-b').speed();
   });
 
   document.getElementById('stop').addEventListener('click', function () {

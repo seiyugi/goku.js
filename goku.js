@@ -115,6 +115,7 @@
   // var TRANSITION_FINISH_THRESHOLD = 0;
   var DEFAULT_DURATION = 400;
   var DEFAULT_EASING = 'ease';
+  var DEFAULT_SPEED_RATIO = 4;
 
   function Transition (element, options) {
     // Currently only support ES6 Promise, add support for various promise implementations later.
@@ -222,8 +223,8 @@
           transitionPropertyArray.push(key);
         }
         var transitionProperty = transitionPropertyArray.join(' ');
-        var duration = options.duration || DEFAULT_DURATION;
-        this.timings.push(duration);
+        options.duration = options.duration || DEFAULT_DURATION;
+        this.timings.push(options.duration);
 
         var that = this;
         var task = {
@@ -231,9 +232,9 @@
           options: options,
           start: function () {
             that.element.style.transitionProperty = transitionProperty;
-            that.element.style.transitionDuration = duration + 'ms';
+            that.element.style.transitionDuration = options.duration + 'ms';
             that.element.style.transitionTimingFunction = options.easing || DEFAULT_EASING;
-            // Workaround for triggering a transition.
+            // Force a transition.
             // http://stackoverflow.com/questions/24148403/trigger-css-transition-on-appended-element
             /* jshint -W030 */
             that.element.offsetWidth;
@@ -264,6 +265,11 @@
       }
     },
 
+    /**
+     * Delay the next animation for the specified time in miliseconds.
+     * @param  {[type]} time [description]
+     * @return {[type]}      [description]
+     */
     delay: function (time) {
       console.log(this.id, 'delay');
       if (time > 0) {
@@ -282,6 +288,10 @@
       return promiseTask.promise;
     },
 
+    /**
+     * Pause the current animation.
+     * @return {[type]} [description]
+     */
     pause: function () {
       console.log(this.id, 'pause');
       this.isPaused = true;
@@ -289,6 +299,10 @@
       return this;
     },
 
+    /**
+     * Resume a pausing animation.
+     * @return {[type]} [description]
+     */
     play: function () {
       console.log(this.id, 'play');
       this.isPaused = false;
@@ -298,8 +312,64 @@
 
     reset: function () {},
 
-    reverse: function () {},
+    reverse: function () {
+      // Need to reset timings first since they might be modified by speed.
+    },
 
+    /**
+     * Change animation speed. Setting the 2nd parameter to true to change the speed of all queued animations.
+     * @param  {[type]} ratio     [description]
+     * @param  {[type]} jumpToEnd [description]
+     * @return {[type]}           [description]
+     */
+    speed: function (ratio, jumpToEnd) {
+      console.log(this.id, 'speed');
+      // Changing only the transition-duration once the transition has started
+      // will not actually shorten or extend the transition duration.
+      // Need to pause the transition first and then start a new transition
+      // with the new duration.
+      var task = this.queue[this.playingIndex];
+
+      if (!task) {
+        return;
+      }
+
+      ratio = ratio || DEFAULT_SPEED_RATIO;
+
+      var properties = task.properties;
+      var remainingTime = (task.options.duration - this.elapsedTime) / ratio;
+      var styles = getComputedStyle(this.element);
+      var key;
+      for (key in properties) {
+        this.element.style[key] = styles[key];
+      }
+      // Force a reflow and repaint.
+      // http://stackoverflow.com/questions/24148403/trigger-css-transition-on-appended-element
+      /* jshint -W030 */
+      this.element.offsetWidth;
+
+      for (key in properties) {
+        this.element.style[key] = properties[key];
+      }
+      this.element.style.transitionDuration = remainingTime + 'ms';
+      this.timings[this.playingIndex] = remainingTime;
+      this.elapsedTime = 0;
+      this.lastTimestamp = 0;
+
+      if (jumpToEnd) {
+        for (var i = this.playingIndex + 1; i < this.queue.length; i++) {
+          this.queue[i].options.duration /= ratio;
+          this.timings[i] /= ratio;
+        }
+      }
+
+      return this;
+    },
+
+    /**
+     * Stop the current animation.
+     * @return {[type]} [description]
+     */
     stop: function () {
       console.log(this.id, 'stop');
 
@@ -321,7 +391,7 @@
       for (var key in properties) {
         this.element.style[key] = properties[key];
       }
-      // Workaround for triggering a reflow and repaint.
+      // Force a reflow and repaint.
       // http://stackoverflow.com/questions/24148403/trigger-css-transition-on-appended-element
       /* jshint -W030 */
       this.element.offsetWidth;
