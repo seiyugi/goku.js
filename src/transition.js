@@ -189,22 +189,22 @@
 
     reverse: function () {},
 
-    next: function () {},
+    stop: function () {
+      console.log(this.id, 'stop');
 
-    /**
-     * End the animation immediately.
-     * @return {[type]} [description]
-     */
-    finish: function () {
-      console.log(this.id, 'finish');
+      this._goto(this.playingIndex);
+      this._next();
+
+      return this;
+    },
+
+    _goto: function (index) {
       // Get the last animation task and its properties in the queue
-      var index = this.queue.length - 1;
-      var properties = this.queue[index].properties;
-      while (!properties) {
-        properties = this.queue[index].properties;
-        index -= 1;
+      if (!this.queue[index] || !this.queue[index].properties) {
+        return false;
       }
-      // Remove transition-properties tyle
+      var properties = this.queue[index].properties;
+      // Remove transition-properties style
       this.element.style.transitionProperty = 'none';
       // Apply the final style properties onto the element
       for (var key in properties) {
@@ -214,6 +214,21 @@
       // http://stackoverflow.com/questions/24148403/trigger-css-transition-on-appended-element
       /* jshint -W030 */
       this.element.offsetWidth;
+
+      return true;
+    },
+
+    /**
+     * End the animation immediately.
+     * @return {[type]} [description]
+     */
+    finish: function () {
+      console.log(this.id, 'finish');
+
+      var index = this.queue.length - 1;
+      while (!this._goto(index) && index > -1) {
+        index -= 1;
+      }
       // Resolving promises following the logic as follows to prevent error
       // when animate is called in the then() callback.
       // Save promiseQueue reference to be resolved below.
