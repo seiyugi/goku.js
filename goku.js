@@ -122,7 +122,10 @@
     this.element = element;
     this.id = options.id;
     this.onstart = options.onstart;
-    this.oncomplete = options.oncomplete;
+    this.oncomplete = function () {
+      this._clear();
+      options.oncomplete(this.element);
+    }.bind(this);
 
     // this.element.style.transitionProperty = 'transform';
     // log purpose only
@@ -295,13 +298,43 @@
 
     reset: function () {},
 
+    reverse: function () {},
+
     next: function () {},
 
     /**
      * End the animation immediately.
      * @return {[type]} [description]
      */
-    end: function () {
+    finish: function () {
+      console.log(this.id, 'finish');
+      // Get the last animation task and its properties in the queue
+      var index = this.queue.length - 1;
+      var properties = this.queue[index].properties;
+      while (!properties) {
+        properties = this.queue[index].properties;
+        index -= 1;
+      }
+      // Remove transition-properties tyle
+      this.element.style.transitionProperty = 'none';
+      // Apply the final style properties onto the element
+      for (var key in properties) {
+        this.element.style[key] = properties[key];
+      }
+      // Workaround for triggering a reflow and repaint.
+      // http://stackoverflow.com/questions/24148403/trigger-css-transition-on-appended-element
+      /* jshint -W030 */
+      this.element.offsetWidth;
+      // Resolving promises following the logic as follows to prevent error
+      // when animate is called in the then() callback.
+      // Save promiseQueue reference to be resolved below.
+      var promiseQueue = this.promiseQueue;
+      // Clean up transition tasks including the promiseQueue.
+      this.oncomplete();
+      // Resolve promises
+      promiseQueue.forEach(function (promise) {
+        promise.resolve();
+      });
 
       return this;
     },
@@ -387,8 +420,7 @@
 
       } else {
         console.log(this.id, 'end');
-        this._clear();
-        this.oncomplete(this.element);
+        this.oncomplete();
       }
     },
 
@@ -399,6 +431,9 @@
       this.timings.length = 0;
       this.elapsedTime = 0;
       this.lastTimestamp = 0;
+      this.isPaused = false;
+      this.pausingIndex = -1;
+      this.promiseQueue = [];
     }
   };
 

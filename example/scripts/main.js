@@ -35,19 +35,11 @@
     .delay(2000)
 
     .animate({
-      transform: 'rotate(270deg)'
+      transform: 'translate(70rem, 0) rotate(270deg)'
     }, {
       duration: 1000,
       start: function () { console.log('start the 3rd #elem-a animation'); },
       complete: function () { console.log('complete the 3rd #elem-a animation'); }
-    })
-
-    .animate({
-      transform: 'none'
-    }, {
-      duration: 600,
-      start: function () { console.log('start the 4th #elem-a animation'); },
-      complete: function () { console.log('complete the 4th #elem-a animation'); }
     });
 
     // #elem-b animations
@@ -99,8 +91,9 @@
     }
   });
 
-  // document.getElementById('end').addEventListener('click', function () {
-  //   goku('#elem-a').end();
-  // });
+  document.getElementById('finish').addEventListener('click', function () {
+    goku('#elem-a').finish();
+    goku('#elem-b').finish();
+  });
 
 })(window);
