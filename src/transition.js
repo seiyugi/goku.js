@@ -11,9 +11,13 @@
     options = options || {};
     this.element = element;
     this.id = options.id;
+    // The callback to notify the goku instance (animation element manager) that the animations for this element has started.
     this.onstart = options.onstart;
+    // The callback to notify the goku instance (animation element manager) that the animations for this element has stopped.
     this.oncomplete = function () {
-      this._clear();
+      // Need to reset timings first since they might be modified by speed.
+      this.isStarted = false;
+      this._reset();
       options.oncomplete(this.element);
     }.bind(this);
 
@@ -23,11 +27,19 @@
     //   console.log('transitionend', evt);
     // });
 
+    // Store the default style before running animations.
+    var cssText = this.element.style.cssText;
+    this.defaultStyle = cssText;
     this.queue = [];
+    // Store original animation timings, timings can be changed by speed method.
+    this.originalTimings = [];
     this.timings = [];
     this.playingIndex = -1;
     this.elapsedTime = 0;
     this.lastTimestamp = 0;
+    // Is any animation started running
+    this.isStarted = false;
+    // Is the running animation paused
     this.isPaused = false;
     this.pausingIndex = -1;
     this.promiseQueue = [];
@@ -113,6 +125,7 @@
         }
         var transitionProperty = transitionPropertyArray.join(' ');
         options.duration = options.duration || DEFAULT_DURATION;
+        this.originalTimings.push(options.duration);
         this.timings.push(options.duration);
 
         var that = this;
@@ -128,13 +141,7 @@
             /* jshint -W030 */
             that.element.offsetWidth;
             for (var key in properties) {
-              if (key === 'transform') {
-                // Although this is helpful, but it contradicts the principle of CSS rules.
-                // that._generateTransform(that.element, properties[key]);
-                that.element.style[key] = properties[key];
-              } else {
-                that.element.style[key] = properties[key];
-              }
+              that.element.style[key] = properties[key];
             }
 
             if (options.start) {
@@ -144,9 +151,7 @@
         };
 
         this.queue.push(task);
-        if (this.queue.length === 1) {
-          this.onstart();
-        }
+        this.onstart(this.id);
 
         var promiseTask = this._generatePromiseTask();
         this.promiseQueue.push(promiseTask);
@@ -160,17 +165,15 @@
      * @return {[type]}      [description]
      */
     delay: function (time) {
-      console.log(this.id, 'delay');
       if (time > 0) {
         this.queue.push({});
+        this.originalTimings.push(time);
         this.timings.push(time);
       } else {
         throw new Error('Goku: missing arguments!');
       }
 
-      if (this.queue.length === 1) {
-        this.onstart();
-      }
+      this.onstart(this.id);
 
       var promiseTask = this._generatePromiseTask();
       this.promiseQueue.push(promiseTask);
@@ -182,8 +185,9 @@
      * @return {[type]} [description]
      */
     pause: function () {
-      console.log(this.id, 'pause');
-      this.isPaused = true;
+      if (this.isStarted) {
+        this.isPaused = true;
+      }
 
       return this;
     },
@@ -193,16 +197,27 @@
      * @return {[type]} [description]
      */
     play: function () {
-      console.log(this.id, 'play');
       this.isPaused = false;
 
       return this.promiseQueue[this.playingIndex].promise;
     },
 
-    reset: function () {},
+    /**
+     * Reset the element to the initial state before applying animations.
+     * @return {[type]} [description]
+     */
+    reset: function () {
+      this.element.style.cssText = this.defaultStyle;
+      this.playingIndex = -1;
+      // Force a reflow and repaint.
+      // http://stackoverflow.com/questions/24148403/trigger-css-transition-on-appended-element
+      /* jshint -W030 */
+      this.element.offsetWidth;
+      this.oncomplete();
+      return this;
+    },
 
     reverse: function () {
-      // Need to reset timings first since they might be modified by speed.
     },
 
     /**
@@ -212,7 +227,6 @@
      * @return {[type]}           [description]
      */
     speed: function (ratio, jumpToEnd) {
-      console.log(this.id, 'speed');
       // Changing only the transition-duration once the transition has started
       // will not actually shorten or extend the transition duration.
       // Need to pause the transition first and then start a new transition
@@ -262,11 +276,10 @@
      * @return {[type]} [description]
      */
     stop: function () {
-      console.log(this.id, 'stop');
-
-      this._goto(this.playingIndex);
-      this._next();
-
+      if (this.isStarted) {
+        this._goto(this.playingIndex);
+        this._next();
+      }
       return this;
     },
 
@@ -295,7 +308,9 @@
      * @return {[type]} [description]
      */
     finish: function () {
-      console.log(this.id, 'finish');
+      if (this.queue.length < 1) {
+        return this;
+      }
 
       var index = this.queue.length - 1;
       while (!this._goto(index) && index > -1) {
@@ -306,6 +321,7 @@
       // Save promiseQueue reference to be resolved below.
       var promiseQueue = this.promiseQueue;
       // Clean up transition tasks including the promiseQueue.
+      this.playingIndex = this.queue.length - 1;
       this.oncomplete();
       // Resolve promises
       promiseQueue.forEach(function (promise) {
@@ -322,7 +338,8 @@
       }
       this.lastTimestamp = timestamp;
 
-      if (this.playingIndex === -1) {
+      if (!this.isStarted) {
+        this.isStarted = true;
         this._next();
         return;
       }
@@ -380,7 +397,6 @@
       this.playingIndex += 1;
 
       if (this.queue[this.playingIndex]) {
-        console.log(this.id, 'next');
 
         var task = this.queue[this.playingIndex];
         if (task.options && typeof task.options.before === 'function') {
@@ -391,22 +407,35 @@
           task.start();
         }
 
-        this.elapsedTime = 0;
-        this.lastTimestamp = 0;
-
       } else {
         console.log(this.id, 'end');
+        this.playingIndex -= 1;
         this.oncomplete();
+      }
+
+      this.elapsedTime = 0;
+      this.lastTimestamp = 0;
+    },
+
+    /**
+     * Reset animations to it's original settings without changing its state.
+     * @return {[type]} [description]
+     */
+    _reset: function () {
+      for (var i = 0; i < this.queue.length; i++) {
+        this.queue[i].options.duration = this.originalTimings[i];
+        this.timings[i] = this.originalTimings[i];
       }
     },
 
     _clear: function () {
-      console.log(this.id, 'clear');
       this.playingIndex = -1;
       this.queue.length = 0;
+      this.originalTimings.length = 0;
       this.timings.length = 0;
       this.elapsedTime = 0;
       this.lastTimestamp = 0;
+      this.isStarted = false;
       this.isPaused = false;
       this.pausingIndex = -1;
       this.promiseQueue = [];

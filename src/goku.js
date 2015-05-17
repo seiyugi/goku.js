@@ -3,8 +3,10 @@
   'use strict';
 
   var requestId;
-
+  // Transition elements
   var elements = {};
+  // Elements that are running animations
+  var animatingElements = [];
 
   var gokuIndex = 0;
 
@@ -62,14 +64,16 @@
     // https://hacks.mozilla.org/2012/05/dom-mutationobserver-reacting-to-dom-changes-without-killing-browser-performance/
     // http://jsbin.com/yeferi/1/edit?html,js,console,output
 
-    // var that = this;
     var id = newId();
 
     element.dataset.gokuId = id;
 
     elements[id] = new Transition(element, {
       id: id,
-      onstart: function () {
+      onstart: function (id) {
+        if (animatingElements.indexOf(id) < 0) {
+          animatingElements.push(id);
+        }
         if (!requestId) {
           console.log('goku.js: start animation loop');
           requestId = requestAnimationFrame(step);
@@ -77,9 +81,11 @@
       },
       oncomplete: function (element) {
         var id = element.dataset.gokuId;
-        delete element.dataset.gokuId;
-        delete elements[id];
-        if (isObjectEmpty(elements)) {
+
+        if (animatingElements.indexOf(id) > -1) {
+          animatingElements.splice(animatingElements.indexOf(id), 1);
+        }
+        if (animatingElements.length < 1) {
           console.log('goku.js: complete animation loop');
           cancelAnimationFrame(requestId);
           requestId = null;
@@ -97,12 +103,12 @@
    */
   function step (timestamp) {
     requestId = requestAnimationFrame(step);
-    // console.log(timestamp);
-    for (var key in elements) {
-      if (elements[key].step) {
-        elements[key].step(timestamp);
+
+    animatingElements.forEach(function (id) {
+      if (elements[id].step) {
+        elements[id].step(timestamp);
       }
-    }
+    });
   }
 
   exports.goku = goku;

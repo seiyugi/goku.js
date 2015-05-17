@@ -53,7 +53,7 @@
     .animate({
       transform: 'translate(70rem, 10rem)'
     }, {
-      duration: 5000,
+      duration: 1000,
       start: function () { console.log('start the 1st #elem-b animation'); },
       complete: function () { console.log('complete the 1st #elem-b animation'); }
     })
@@ -95,12 +95,12 @@
 
   document.getElementById('fast-forward').addEventListener('click', function () {
     goku('#elem-a').speed(7, true);
-    goku('#elem-b').speed();
+    goku('#elem-b').speed(3, true);
   });
 
   document.getElementById('slow-motion').addEventListener('click', function () {
     goku('#elem-a').speed(0.25, true);
-    goku('#elem-b').speed();
+    goku('#elem-b').speed(0.25, true);
   });
 
   document.getElementById('stop').addEventListener('click', function () {
@@ -111,6 +111,11 @@
   document.getElementById('finish').addEventListener('click', function () {
     goku('#elem-a').finish();
     goku('#elem-b').finish();
+  });
+
+  document.getElementById('reset').addEventListener('click', function () {
+    goku('#elem-a').reset();
+    goku('#elem-b').reset();
   });
 
 })(window);
