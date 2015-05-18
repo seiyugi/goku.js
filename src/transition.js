@@ -41,7 +41,7 @@
     this.isStarted = false;
     // Is the running animation paused
     this.isPaused = false;
-    this.pausingIndex = -1;
+    this.isPauseHandled = false;
     this.promiseQueue = [];
 
     this.animate = this.animate.bind(this);
@@ -344,7 +344,7 @@
         return;
       }
 
-      if (this.isPaused && this.pausingIndex > -1) {
+      if (this.isPaused && this.isPauseHandled) {
         return;
       }
 
@@ -352,9 +352,9 @@
       var properties;
       var key;
 
-      if (this.isPaused && this.pausingIndex < 0) {
+      if (this.isPaused && !this.isPauseHandled) {
         // Set the current style to element.style
-        this.pausingIndex = this.playingIndex;
+        this.isPauseHandled = true;
         var styles = getComputedStyle(this.element);
         task = this.queue[this.playingIndex];
         properties = task.properties;
@@ -366,8 +366,8 @@
         return;
       }
 
-      if (!this.isPaused && this.pausingIndex > -1) {
-        this.pausingIndex = -1;
+      if (!this.isPaused && this.isPauseHandled) {
+        this.isPauseHandled = false;
         task = this.queue[this.playingIndex];
         properties = task.properties;
 
@@ -437,7 +437,7 @@
       this.lastTimestamp = 0;
       this.isStarted = false;
       this.isPaused = false;
-      this.pausingIndex = -1;
+      this.isPauseHandled = false;
       this.promiseQueue = [];
     }
   };
