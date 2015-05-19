@@ -3,6 +3,7 @@
 // generated on 2015-04-23 using generator-gulp-webapp 0.3.0
 var gulp = require('gulp');
 var $ = require('gulp-load-plugins')();
+var ghPages = require('gulp-gh-pages');
 var browserSync = require('browser-sync');
 var reload = browserSync.reload;
 
@@ -70,7 +71,7 @@ gulp.task('serve', ['styles', 'build'], function () {
     'src/**/*.js'
   ]).on('change', reload);
 
-  gulp.watch('example/**/*', ['html', 'example-js'])
+  gulp.watch('example/**/*', ['html', 'example-js']);
   gulp.watch('src/**/*.js', ['core']);
   gulp.watch('bower.json', ['wiredep', 'fonts']);
 });
@@ -92,17 +93,18 @@ gulp.task('core', function() {
     .pipe($.jshint())
     .pipe($.jshint.reporter('jshint-stylish'))
     .pipe($.concat('goku.js'))
-    .pipe(gulp.dest('dist'))
     .pipe(gulp.dest('./'))
     .pipe($.uglify())
     .pipe($.concat('goku.min.js'))
     .pipe($.sourcemaps.write('maps'))
     .pipe(gulp.dest('.tmp/scripts'))
-    .pipe(gulp.dest('dist'))
     .pipe(gulp.dest('./'));
 });
 
 gulp.task('build', ['core', 'example-js', 'html', 'extras'], function () {
+  gulp.src('.tmp/**/*')
+  .pipe(gulp.dest('dist'));
+
   return gulp.src('dist/**/*').pipe($.size({title: 'build', gzip: true}));
 });
 
@@ -113,4 +115,9 @@ gulp.task('default', ['clean'], function () {
 gulp.task('hook', function() {
   return gulp.src('.post-merge')
     .pipe($.symlink('.git/hooks/post-merge', {force: true}));
+});
+
+gulp.task('deploy', ['build'], function() {
+  return gulp.src('./dist/**/*')
+    .pipe(ghPages());
 });
