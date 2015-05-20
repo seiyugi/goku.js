@@ -65,15 +65,12 @@ gulp.task('serve', ['styles', 'build'], function () {
 
   // watch for changes
   gulp.watch([
-    'example/*.html',
-    'example/scripts/**/*.js',
-    'example/images/**/*',
-    'src/**/*.js'
+    '.tmp/**/*'
   ]).on('change', reload);
 
   gulp.watch('example/**/*', ['html', 'example-js']);
   gulp.watch('src/**/*.js', ['core']);
-  gulp.watch('bower.json', ['wiredep', 'fonts']);
+  gulp.watch('bower.json', ['wiredep']);
 });
 
 // inject bower components
